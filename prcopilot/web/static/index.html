@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PR Copilot</title>
+  <meta name="description" content="AI pull-request reviewer: GitHub webhook, Claude structured reviews, cost tracking.">
+  <meta name="color-scheme" content="dark light">
+  <script>
+    // Resolve the theme before first paint: ?theme=light|dark, then the saved choice, then dark.
+    (function () {
+      var t = null;
+      try { var q = new URLSearchParams(location.search).get("theme"); if (q === "light" || q === "dark") t = q; } catch (e) {}
+      if (!t) { try { var s = localStorage.getItem("prcopilot-theme"); if (s === "light" || s === "dark") t = s; } catch (e) {} }
+      document.documentElement.setAttribute("data-theme", t || "dark");
+    })();
+  </script>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23059669'/%3E%3Cpath d='M11 9v14M11 9a3 3 0 1 0 0 .01M21 23a3 3 0 1 0 0-.01M21 20v-6a4 4 0 0 0-4-4h-3' stroke='white' stroke-width='2.2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="/static/style.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/gsap.min.js"></script>
+</head>
+<body>
+  <div class="bg-glow" aria-hidden="true"><span class="glow g1"></span><span class="glow g2"></span></div>
+
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="#/" aria-label="PR Copilot home">
+        <span class="logo" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="M6 8.5v12"/><path d="M18 15.5V10a4 4 0 0 0-4-4h-3"/><path d="m13 3.5-2.5 2.5L13 8.5"/></svg>
+        </span>
+        <span class="brand-text"><strong>PR Copilot</strong><small>AI code review for every pull request</small></span>
+      </a>
+      <nav id="main-nav" aria-label="Main">
+        <a href="#/" data-nav="overview">Overview</a>
+        <a href="#/reviews" data-nav="reviews">Reviews</a>
+        <a href="/docs" target="_blank" rel="noopener">API <svg class="ext" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7"/><path d="M8 7h9v9"/></svg></a>
+      </nav>
+      <div class="topbar-actions">
+        <span id="mode-badge" class="mode-badge" hidden><span class="dot"></span><span id="mode-text">Demo mode</span></span>
+        <button id="theme-toggle" class="icon-btn" type="button" aria-label="Toggle colour theme" title="Toggle theme">
+          <svg class="i-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+          <svg class="i-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+        </button>
+        <button id="nav-toggle" class="icon-btn nav-toggle" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="main-nav">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="shell">
+    <main id="app" aria-live="polite">
+      <div class="skeleton-page" aria-label="Loading">
+        <div class="sk sk-title"></div>
+        <div class="kpis"><div class="sk sk-kpi"></div><div class="sk sk-kpi"></div><div class="sk sk-kpi"></div><div class="sk sk-kpi"></div></div>
+        <div class="grid split"><div class="sk sk-card"></div><div class="sk sk-card"></div></div>
+      </div>
+    </main>
+    <footer class="foot">PR Copilot &middot; FastAPI + SQLite + Claude &middot; <a href="/docs" target="_blank" rel="noopener">OpenAPI docs</a> &middot; <a href="/healthz" target="_blank" rel="noopener">/healthz</a></footer>
+  </div>
+
+  <div id="toast" class="toast" role="status" hidden></div>
+  <script src="/static/app.js"></script>
+</body>
+</html>

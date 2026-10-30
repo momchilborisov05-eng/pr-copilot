@@ -1,0 +1,54 @@
+diff --git a/backend/services/dashboard.py b/backend/services/dashboard.py
+index 2c4d8e1..7a90b3f 100644
+--- a/backend/services/dashboard.py
++++ b/backend/services/dashboard.py
+@@ -1,11 +1,30 @@
+ from decimal import Decimal
+ 
+-from sqlalchemy import select
++from sqlalchemy import func, select
+ from sqlalchemy.orm import Session
+ 
+-from backend.models import Order
++from backend.models import Customer, Order, OrderItem
+ 
+ 
+ def recent_orders(session: Session, limit: int = 50) -> list[dict]:
+     orders = session.scalars(select(Order).order_by(Order.created_at.desc()).limit(limit)).all()
+-    return [{"id": o.id, "status": o.status} for o in orders]
++    result = []
++    for order in orders:
++        items = session.scalars(select(OrderItem).where(OrderItem.order_id == order.id)).all()
++        customer = session.get(Customer, order.customer_id)
++        total = sum((i.unit_price * i.quantity for i in items), Decimal("0"))
++        result.append(
++            {
++                "id": order.id,
++                "status": order.status,
++                "customer": customer.name,
++                "items": len(items),
++                "total": str(total),
++            }
++        )
++    return result
++
++
++def revenue_today(session: Session) -> Decimal:
++    stmt = select(func.sum(OrderItem.unit_price * OrderItem.quantity)).join(Order)
++    return session.scalar(stmt) or Decimal("0")
+diff --git a/tests/test_dashboard.py b/tests/test_dashboard.py
+index 0d1e5a2..4bc6f90 100644
+--- a/tests/test_dashboard.py
++++ b/tests/test_dashboard.py
+@@ -10,3 +10,11 @@ def test_recent_orders_returns_newest_first(session, make_order):
+     make_order(status="paid")
+     make_order(status="shipped")
+     assert [o["status"] for o in recent_orders(session)] == ["shipped", "paid"]
++
++
++def test_recent_orders_includes_totals(session, make_order):
++    order = make_order(status="paid", items=[("Mug", "12.50", 2)])
++    [row] = recent_orders(session)
++    assert row["id"] == order.id
++    assert row["total"] == "25.00"
++    assert row["items"] == 1

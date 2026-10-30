@@ -1,0 +1,80 @@
+diff --git a/accounts/validators.py b/accounts/validators.py
+new file mode 100644
+index 0000000..a83c4d1
+--- /dev/null
++++ b/accounts/validators.py
+@@ -0,0 +1,17 @@
++"""Input validation shared by the signup and profile forms."""
++
++import re
++
++EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[a-z]{2,}$", re.IGNORECASE)
++
++
++class ValidationError(ValueError):
++    """Raised when user input is not acceptable."""
++
++
++def normalize_email(value: str) -> str:
++    """Trim and lower-case an email address, or raise ValidationError."""
++    email = value.strip().lower()
++    if not EMAIL_RE.match(email):
++        raise ValidationError(f"Invalid email address: {value!r}")
++    return email
+diff --git a/accounts/forms.py b/accounts/forms.py
+index 4f0e2b1..9c1d7a5 100644
+--- a/accounts/forms.py
++++ b/accounts/forms.py
+@@ -1,23 +1,15 @@
+-import re
+-
+-EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[a-z]{2,}$", re.IGNORECASE)
++from accounts.validators import ValidationError, normalize_email
+ 
+ 
+ def clean_signup(data: dict) -> dict:
+-    email = data.get("email", "").strip().lower()
+-    if not EMAIL_RE.match(email):
+-        raise ValueError("Invalid email address")
+     return {
+-        "email": email,
++        "email": normalize_email(data.get("email", "")),
+         "name": data.get("name", "").strip(),
+     }
+ 
+ 
+ def clean_profile(data: dict) -> dict:
+-    email = data.get("email", "").strip().lower()
+-    if not EMAIL_RE.match(email):
+-        raise ValueError("Invalid email address")
+-    return {"email": email, "bio": data.get("bio", "")[:500]}
++    return {"email": normalize_email(data.get("email", "")), "bio": data.get("bio", "")[:500]}
+ 
+ 
+-__all__ = ["clean_signup", "clean_profile"]
++__all__ = ["ValidationError", "clean_signup", "clean_profile"]
+diff --git a/tests/test_validators.py b/tests/test_validators.py
+new file mode 100644
+index 0000000..e5b2c90
+--- /dev/null
++++ b/tests/test_validators.py
+@@ -0,0 +1,19 @@
++import unittest
++
++from accounts.validators import ValidationError, normalize_email
++
++
++class NormalizeEmailTest(unittest.TestCase):
++    def test_trims_and_lowercases(self):
++        self.assertEqual(normalize_email("  Ana@Example.COM "), "ana@example.com")
++
++    def test_rejects_missing_at(self):
++        with self.assertRaises(ValidationError):
++            normalize_email("ana.example.com")
++
++    def test_rejects_spaces(self):
++        with self.assertRaises(ValidationError):
++            normalize_email("ana smith@example.com")
++
++    def test_error_is_a_value_error(self):
++        self.assertTrue(issubclass(ValidationError, ValueError))

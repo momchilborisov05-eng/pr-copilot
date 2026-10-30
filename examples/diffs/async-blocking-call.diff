@@ -1,0 +1,35 @@
+diff --git a/api/routers/pricing.py b/api/routers/pricing.py
+index b1c2d3e..f4a5b6c 100644
+--- a/api/routers/pricing.py
++++ b/api/routers/pricing.py
+@@ -1,11 +1,27 @@
+-from fastapi import APIRouter
++import requests
++from fastapi import APIRouter, HTTPException
+ 
+ from api.catalog import get_product
+ 
+ router = APIRouter(prefix="/pricing")
+ 
++RATES_URL = "https://api.exchange.example/latest"
++
+ 
+ @router.get("/{sku}")
+-async def price(sku: str):
++async def price(sku: str, currency: str = "EUR"):
+     product = await get_product(sku)
+-    return {"sku": sku, "price": product.price_eur, "currency": "EUR"}
++    if product is None:
++        raise HTTPException(status_code=404, detail="Unknown SKU")
++    if currency == "EUR":
++        return {"sku": sku, "price": product.price_eur, "currency": "EUR"}
++    try:
++        response = requests.get(RATES_URL, params={"base": "EUR"})
++        rate = response.json()["rates"][currency]
++    except Exception:
++        rate = 1.0
++    return {
++        "sku": sku,
++        "price": round(product.price_eur * rate, 2),
++        "currency": currency,
++    }

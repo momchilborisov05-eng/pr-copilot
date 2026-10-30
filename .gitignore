@@ -1,0 +1,12 @@
+.env
+__pycache__/
+*.pyc
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+.coverage
+coverage.xml
+htmlcov/
+.venv/
+.ruff_cache/

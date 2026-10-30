@@ -1,0 +1,13 @@
+.git
+.github
+.env
+*.db*
+__pycache__/
+*.pyc
+.venv/
+.ruff_cache/
+.coverage
+tests/
+docs/
+examples/*.png
+examples/cover.html

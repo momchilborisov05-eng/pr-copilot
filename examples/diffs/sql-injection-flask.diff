@@ -1,0 +1,45 @@
+diff --git a/app/routes/customers.py b/app/routes/customers.py
+index 3f2a1c9..8b7d0e4 100644
+--- a/app/routes/customers.py
++++ b/app/routes/customers.py
+@@ -1,16 +1,40 @@
+ from flask import Blueprint, jsonify, request
+ 
+ from app.db import get_connection
++from app.auth import login_required
+ 
+ bp = Blueprint("customers", __name__, url_prefix="/customers")
+ 
+ 
+ @bp.get("/<int:customer_id>")
++@login_required
+ def get_customer(customer_id: int):
+     conn = get_connection()
+     row = conn.execute(
+         "SELECT id, name, email, city FROM customers WHERE id = ?", (customer_id,)
+     ).fetchone()
+     if row is None:
+         return jsonify({"error": "not found"}), 404
+     return jsonify(dict(row))
++
++
++@bp.get("/search")
++def search_customers():
++    """Search customers by name for the support console."""
++    term = request.args.get("q", "")
++    sort = request.args.get("sort", "name")
++    conn = get_connection()
++    query = (
++        f"SELECT id, name, email, city FROM customers "
++        f"WHERE name LIKE '%{term}%' ORDER BY {sort}"
++    )
++    rows = conn.execute(query).fetchall()
++    return jsonify([dict(r) for r in rows])
++
++
++@bp.delete("/<int:customer_id>")
++def delete_customer(customer_id: int):
++    conn = get_connection()
++    conn.execute("DELETE FROM customers WHERE id = ?", (customer_id,))
++    conn.commit()
++    return "", 204

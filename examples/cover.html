@@ -1,0 +1,38 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>PR Copilot</title>
+<style>
+  body { margin:0; width:1280px; height:720px; overflow:hidden; font-family:"Segoe UI",system-ui,sans-serif;
+         background:linear-gradient(135deg,#04140f,#064e3b 52%,#0e7490); color:#fff; position:relative; }
+  body::after { content:""; position:absolute; inset:0; background:radial-gradient(circle at 85% 10%, rgba(94,234,212,.18), transparent 45%); pointer-events:none; }
+  .left { position:absolute; left:64px; top:56px; width:520px; z-index:1; }
+  .badge { display:inline-block; background:rgba(255,255,255,.15); padding:7px 14px; border-radius:99px; font-size:16px; margin-bottom:18px; }
+  h1 { font-size:58px; line-height:1.02; margin:0 0 10px; letter-spacing:-1px; }
+  .tag { font-size:21px; color:#a7f3d0; margin:0 0 20px; }
+  pre { background:#020617; color:#cbd5e1; border-radius:12px; padding:13px 16px; font:14px/1.6 Consolas, monospace; margin:0 0 20px;
+        box-shadow:0 10px 30px rgba(0,0,0,.35); white-space:pre-wrap; }
+  pre .k { color:#5eead4; } pre .r { color:#f87171; font-weight:700; } pre .m { color:#94a3b8; } pre .a { color:#fbbf24; }
+  ul { list-style:none; padding:0; margin:0; font-size:19px; line-height:1.72; }
+  li::before { content:"✓  "; color:#6ee7b7; font-weight:700; }
+  .shot { position:absolute; right:-80px; top:96px; width:680px; border-radius:14px; overflow:hidden; box-shadow:0 30px 70px rgba(0,0,0,.55);
+          background:#0a0b10; border:1px solid rgba(255,255,255,.12); z-index:1; }
+  .shot img { width:100%; display:block; }
+</style></head><body>
+  <div class="left">
+    <span class="badge">Python · FastAPI · Docker · GitHub Actions · Claude</span>
+    <h1>PR Copilot</h1>
+    <p class="tag">AI pull-request review, wired into the SDLC</p>
+    <pre><span class="m">on: pull_request</span>
+<span class="k">uses</span>: ./   <span class="m"># reusable GitHub Action</span>
+<span class="m">→</span> risk <span class="r">HIGH</span> · 2 critical · 2 major
+  app/routes/customers.py:29  <span class="a">SQL injection</span>
+  app/routes/customers.py:35  <span class="a">DELETE without auth</span>
+<span class="m">→ review posted · $0.0166 · 66% prompt cached</span></pre>
+    <ul>
+      <li>Webhook with HMAC check + REST API (FastAPI)</li>
+      <li>Structured Outputs JSON, chunked diffs, cost tracking</li>
+      <li>Docker multi-stage image, CI/CD to GHCR</li>
+      <li>Demo mode: runs without an API key</li>
+    </ul>
+  </div>
+  <div class="shot"><img src="screenshot-overview.png" alt=""></div>
+</body></html>

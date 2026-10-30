@@ -1,0 +1,77 @@
+name: PR Copilot
+description: AI pull-request review with Claude - risk, line-level findings, missing tests and a changelog entry.
+author: Momchil Borisov
+branding:
+  icon: git-pull-request
+  color: green
+
+inputs:
+  anthropic-api-key:
+    description: Anthropic API key. Leave empty to run in demo mode (no model call, canned/static review).
+    required: false
+    default: ""
+  github-token:
+    description: Token used to read the PR diff and post the review.
+    required: false
+    default: ${{ github.token }}
+  model:
+    description: Claude model id.
+    required: false
+    default: claude-opus-5-5
+  effort:
+    description: Claude effort level (low, medium, high).
+    required: false
+    default: medium
+  fail-on:
+    description: Fail the job when the review risk is at least this level (never, low, medium, high).
+    required: false
+    default: never
+  post-review:
+    description: Post the review on the pull request ("true" or "false").
+    required: false
+    default: "true"
+  python-version:
+    description: Python version used to run the reviewer.
+    required: false
+    default: "3.12"
+
+outputs:
+  risk:
+    description: Overall risk (low, medium, high).
+    value: ${{ steps.review.outputs.risk }}
+  findings:
+    description: Number of findings.
+    value: ${{ steps.review.outputs.findings }}
+  serious-findings:
+    description: Number of critical and major findings.
+    value: ${{ steps.review.outputs.serious-findings }}
+  cost-usd:
+    description: Model cost of this review in USD.
+    value: ${{ steps.review.outputs.cost-usd }}
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-python@v5
+      with:
+        python-version: ${{ inputs.python-version }}
+
+    - name: Install PR Copilot
+      shell: bash
+      run: python -m pip install --quiet --disable-pip-version-check -r "${{ github.action_path }}/requirements.txt"
+
+    - name: Review the pull request
+      id: review
+      shell: bash
+      env:
+        PYTHONPATH: ${{ github.action_path }}
+        ANTHROPIC_API_KEY: ${{ inputs.anthropic-api-key }}
+        GITHUB_TOKEN: ${{ inputs.github-token }}
+        CLAUDE_MODEL: ${{ inputs.model }}
+        CLAUDE_EFFORT: ${{ inputs.effort }}
+        FAIL_ON: ${{ inputs.fail-on }}
+        POST_REVIEW: ${{ inputs.post-review }}
+      run: |
+        args=(--fail-on "$FAIL_ON" --json-out "$RUNNER_TEMP/pr-copilot-review.json")
+        if [ "$POST_REVIEW" != "true" ]; then args+=(--no-post); fi
+        python -m prcopilot.action "${args[@]}"

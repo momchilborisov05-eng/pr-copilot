@@ -1,0 +1,67 @@
+diff --git a/shop/utils/text.py b/shop/utils/text.py
+new file mode 100644
+index 0000000..5c1e2f7
+--- /dev/null
++++ b/shop/utils/text.py
+@@ -0,0 +1,35 @@
++"""Small text and pagination helpers used by the catalogue views."""
++
++import re
++import unicodedata
++
++_NON_WORD = re.compile(r"[^a-z0-9]+")
++
++
++def slugify(value: str, max_length: int = 60) -> str:
++    """Turn 'Cafe Creme 250g' into 'cafe-creme-250g'."""
++    normalized = unicodedata.normalize("NFKD", value).encode("ascii", "ignore").decode()
++    slug = _NON_WORD.sub("-", normalized.lower()).strip("-")
++    return slug[:max_length]
++
++
++def paginate(items: list, page: int, per_page: int = 20) -> dict:
++    """Return one page of `items` plus paging metadata. Pages start at 1."""
++    start = (page - 1) * per_page
++    end = start + per_page
++    total_pages = len(items) // per_page
++    return {
++        "items": items[start:end],
++        "page": page,
++        "per_page": per_page,
++        "total": len(items),
++        "total_pages": total_pages,
++        "has_next": page < total_pages,
++    }
++
++
++def truncate_words(text: str, limit: int) -> str:
++    words = text.split()
++    if len(words) <= limit:
++        return text
++    return " ".join(words[:limit]) + "..."
+diff --git a/shop/views/catalogue.py b/shop/views/catalogue.py
+index 91ab0c2..d4e7f13 100644
+--- a/shop/views/catalogue.py
++++ b/shop/views/catalogue.py
+@@ -1,15 +1,19 @@
+ from fastapi import APIRouter
+ 
+ from shop.repository import list_products
++from shop.utils.text import paginate, slugify
+ 
+ router = APIRouter()
+ 
+ 
+ @router.get("/products")
+-def products():
+-    return {"items": list_products()}
++def products(page: int = 1):
++    items = list_products()
++    for item in items:
++        item["slug"] = slugify(item["name"])
++    return paginate(items, page)
+ 
+ 
+ @router.get("/health")
+ def health():
+     return {"ok": True}

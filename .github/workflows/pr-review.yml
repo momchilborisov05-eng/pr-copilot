@@ -1,0 +1,36 @@
+# Dogfooding: PR Copilot reviews pull requests to this repository with its own GitHub Action.
+name: PR review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read
+  pull-requests: write     # post the review comment
+
+concurrency:
+  group: pr-review-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  review:
+    name: AI review
+    if: github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: PR Copilot
+        id: copilot
+        uses: ./
+        with:
+          # Without the secret (forks, first setup) the action runs in demo mode and makes no model call.
+          anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
+          fail-on: high
+          post-review: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
+
+      - name: Report
+        if: always()
+        run: echo "risk=${{ steps.copilot.outputs.risk }} findings=${{ steps.copilot.outputs.findings }} cost=${{ steps.copilot.outputs.cost-usd }}"

@@ -1,0 +1,45 @@
+[project]
+name = "pr-copilot"
+version = "1.0.0"
+description = "AI pull-request reviewer: FastAPI webhook + REST API, Claude structured reviews, GitHub Action."
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [{ name = "Momchil Borisov" }]
+license = { text = "MIT" }
+dependencies = [
+    "anthropic>=2.2.0",
+    "fastapi>=0.115",
+    "uvicorn>=0.30",
+    "httpx>=0.27",
+    "pydantic>=2.7",
+    "python-dotenv>=1.0",
+]
+
+[project.scripts]
+prcopilot = "prcopilot.__main__:main"
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+extend-exclude = ["examples"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP"]
+ignore = [
+    "E501",    # long strings (prompts, canned reviews, SQL) read better unwrapped
+    "B008",    # FastAPI Header()/Query() defaults
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["E731"]
+
+[tool.ruff.format]
+quote-style = "double"
+
+[tool.coverage.run]
+source = ["prcopilot"]
+omit = ["prcopilot/__main__.py"]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true
