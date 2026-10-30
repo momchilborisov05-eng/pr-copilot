@@ -7,7 +7,7 @@ overall risk can never be lower than the worst finding.
 
 from __future__ import annotations
 
-from enum import Enum
+from enum import StrEnum
 
 from pydantic import BaseModel, Field, ValidationError, field_validator
 
@@ -15,20 +15,20 @@ __all__ = ["Risk", "Severity", "Category", "Finding", "ChunkReview", "Review", "
            "ValidationError", "validate_chunk_review", "merge_reviews", "risk_from_findings"]
 
 
-class Risk(str, Enum):
+class Risk(StrEnum):
     low = "low"
     medium = "medium"
     high = "high"
 
 
-class Severity(str, Enum):
+class Severity(StrEnum):
     info = "info"
     minor = "minor"
     major = "major"
     critical = "critical"
 
 
-class Category(str, Enum):
+class Category(StrEnum):
     bug = "bug"
     security = "security"
     performance = "performance"

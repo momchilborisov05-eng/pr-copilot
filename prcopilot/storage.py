@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import sqlite3
 import threading
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS reviews (
@@ -64,7 +64,7 @@ SEVERITY_SQL = "CASE severity WHEN 'critical' THEN 0 WHEN 'major' THEN 1 WHEN 'm
 
 
 def utcnow() -> datetime:
-    return datetime.now(timezone.utc).replace(microsecond=0)
+    return datetime.now(UTC).replace(microsecond=0)
 
 
 class Store:
